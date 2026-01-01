@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
-from models import db, Image, User
+from models import db, Image, User, Comment
 import os
 from datetime import datetime
 
@@ -26,14 +26,22 @@ def get_all_images():
     
     result = []
     for image in images.items:
+
+        comment_count = Comment.query.filter_by(image_id=image.id).count()
+        latest_comment = Comment.query.filter_by(image_id=image.id)\
+            .order_by(Comment.created_at.desc()).first()
+        last_comment_at = latest_comment.created_at if latest_comment else image.created_at
+
         result.append({
             'id': image.id,
             'title': image.title,
             'description': image.description,
             'imageUrl': f'http://localhost:5000/api/images/files/{image.image_url}',
             'userId': image.user_id,
-            'username': image.user.username,
-            'createdAt': image.created_at.isoformat()
+            'username': image.user.nickname,
+            'createdAt': image.created_at.isoformat(),
+            'commentCount': comment_count,
+            'lastCommentAt': last_comment_at.isoformat(),
         })
     
     return jsonify({
@@ -56,14 +64,22 @@ def search_images():
     
     result = []
     for image in images:
+
+        comment_count = Comment.query.filter_by(image_id=image.id).count()
+        latest_comment = Comment.query.filter_by(image_id=image.id)\
+            .order_by(Comment.created_at.desc()).first()
+        last_comment_at = latest_comment.created_at if latest_comment else image.created_at
+
         result.append({
             'id': image.id,
             'title': image.title,
             'description': image.description,
             'imageUrl': f'http://localhost:5000/api/images/files/{image.image_url}',
             'userId': image.user_id,
-            'username': image.user.username,
-            'createdAt': image.created_at.isoformat()
+            'username': image.user.nickname,
+            'createdAt': image.created_at.isoformat(),
+            'commentCount': comment_count,
+            'lastCommentAt': last_comment_at.isoformat(),
         })
     
     return jsonify({'images': result}), 200
@@ -73,6 +89,12 @@ def search_images():
 def get_image(id):
     image = Image.query.get_or_404(id)
     
+    comment_count = Comment.query.filter_by(image_id=image.id).count()
+    latest_comment = Comment.query.filter_by(image_id=image.id)\
+        .order_by(Comment.created_at.desc()).first()
+    last_comment_at = latest_comment.created_at if latest_comment else image.created_at
+
+
     return jsonify({
         'id': image.id,
         'title': image.title,
@@ -80,7 +102,9 @@ def get_image(id):
         'imageUrl': f'http://localhost:5000/api/images/files/{image.image_url}',
         'userId': image.user_id,
         'username': image.user.username,
-        'createdAt': image.created_at.isoformat()
+        'createdAt': image.created_at.isoformat(),
+        'commentCount': comment_count,
+        'lastCommentAt': last_comment_at.isoformat(),
     }), 200
 
 # 이미지 업로드

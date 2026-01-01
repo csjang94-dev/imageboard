@@ -8,6 +8,8 @@ import os
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
+
 # CORS 설정 (React와 통신하기 위해)
 CORS(app, origins=['http://localhost:3000'])
 
@@ -41,8 +43,17 @@ if not os.path.exists('uploads'):
 
 from routes.auth import auth_bp
 from routes.images import images_bp
+from routes.comments import comments_bp
+from routes.reactions import reactions_bp
+from routes.users import users_bp
+from routes.notifications import notifications_bp
+
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(images_bp, url_prefix='/api/images')
+app.register_blueprint(comments_bp, url_prefix='/api/comments')
+app.register_blueprint(reactions_bp, url_prefix='/api/reactions')
+app.register_blueprint(users_bp, url_prefix='/api/users')
+app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
 
 @app.route('/')
 def index():
